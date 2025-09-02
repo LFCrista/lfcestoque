@@ -113,12 +113,6 @@ const RetirarEstoque = () => {
     return p ? p.nome : "Desconhecida";
   };
 
-  /** ➕ MODAL: abrir */
-  const abrirAdicionar = (estoque: any) => {
-    setEstoqueParaAdicionar(estoque);
-    setIsAddModalOpen(true);
-  };
-
   /** ➕ MODAL: submit (adicionar unidades) */
   const handleAdicionarSubmit = async (quantidade: number) => {
     const est = estoqueParaAdicionar;
