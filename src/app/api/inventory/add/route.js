@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { NextResponse } from 'next/server'
 import { createServerClient } from '../../../../lib/supabase-server.js' // 4 níveis e .js
 
