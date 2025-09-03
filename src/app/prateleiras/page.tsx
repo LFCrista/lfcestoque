@@ -1,5 +1,4 @@
-// 'use client';
-
+"use client";
 import { useState, useEffect, useCallback } from "react";
 import Header from "../../components/Header";
 import { supabase } from "../../lib/supabase";
