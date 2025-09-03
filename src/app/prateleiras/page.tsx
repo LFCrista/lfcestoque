@@ -60,29 +60,50 @@ export default function PrateleirasPage() {
         setPrateleiras(prateleirasData || []);
       }
 
-      // produtos por prateleira
-      prateleirasData?.forEach(async (prateleira: any) => {
-        const { data: produtosData, error: produtosError } = await supabase
-          .from("estoques")
-          .select("produtos(*)")
-          .eq("id_prateleira", prateleira.id);
+      // ...POR ESTE for..of (evita join; erros claros)
+      for (const prateleira of prateleirasData ?? []) {
+        try {
+          // 1) pegue os ids dos produtos na prateleira
+          const { data: stocks, error: e1 } = await supabase
+            .from("estoques")
+            .select("id_produto")
+            .eq("id_prateleira", prateleira.id);
 
-        if (produtosError) {
+          if (e1) throw e1;
+
+          const ids = (stocks ?? []).map((s) => s.id_produto).filter(Boolean);
+
+          if (!ids.length) {
+            setProdutosPorPrateleira((prev) => ({
+              ...prev,
+              [prateleira.id]: "Nenhum produto armazenado",
+            }));
+            continue;
+          }
+
+          // 2) busque os produtos por id (sem join)
+          const { data: produtos, error: e2 } = await supabase
+            .from("produtos")
+            .select("id, nome, SKU, codBarras")
+            .in("id", ids);
+
+          if (e2) throw e2;
+
+          setProdutosPorPrateleira((prev) => ({
+            ...prev,
+            [prateleira.id]: produtos ?? [],
+          }));
+        } catch (err: any) {
           console.error(
             `Erro ao carregar produtos da prateleira ${prateleira.id}:`,
-            produtosError
+            err?.message ?? err
           );
-          // errorToast(`Erro ao carregar produtos da prateleira ${prateleira.id}.`);
-        } else {
-          setProdutosPorPrateleira((prev: any) => ({
+          setProdutosPorPrateleira((prev) => ({
             ...prev,
-            [prateleira.id]:
-              (produtosData?.length || 0) > 0
-                ? produtosData!.map((estoque: any) => estoque.produtos)
-                : "Nenhum produto armazenado",
+            [prateleira.id]: "Falha ao carregar",
           }));
         }
-      });
+      }
     };
 
     fetchUserEmail();
